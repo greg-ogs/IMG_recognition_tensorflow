@@ -4,7 +4,6 @@ Created on Sun Dec 26 21:06:12 2021
 
 @author: grego
 Gregorio ALejandro Oropeza Gomez
-
 """
 
 import matplotlib.pyplot as plt
