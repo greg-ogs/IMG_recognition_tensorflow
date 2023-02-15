@@ -20,8 +20,9 @@ import pathlib
 image_size = (180, 180)
 batch_size = 32
 
-print('Introdusca el directorio donde se encuentra el dataset, recuerde usar "/"')
-data_dir = input() #For classes
+#print('Introdusca el directorio donde se encuentra el dataset, recuerde usar "/"')
+#data_dir = input() #For classes
+data_dir = "C:/Users/grego/OneDrive/Documents/Python Scripts/NeuralNet/Datasets/flower_photos/flower_photos"
 
 # IMages for validation & training
 train_ds = tf.keras.preprocessing.image_dataset_from_directory(
@@ -43,7 +44,7 @@ val_ds = tf.keras.preprocessing.image_dataset_from_directory(
 class_names = train_ds.class_names
 print(class_names)
 
-# Argumentation 
+# Argumentation
 data_augmentation = keras.Sequential(
     [
         layers.RandomFlip("horizontal"),
@@ -73,7 +74,7 @@ x = layers.Conv2D(64, 3, padding="same")(x)
 x = layers.BatchNormalization()(x)
 x = layers.Activation("relu")(x)
 
-previous_block_activation = x  
+previous_block_activation = x
 
 for size in [128, 256, 512, 728]:
     x = layers.Activation("relu")(x)
@@ -119,7 +120,7 @@ callbacks = [
 model.compile(
     optimizer = tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.9, nesterov=False, name ="SGD"),
     #se pueden elegir diferentes funciones de perdida y optimizadores en esta parte
-    loss= tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False, reduction=tf.keras.losses.Reduction.AUTO,name='sparse_categorical_crossentropy'),#SUM20%aprox---AUTO80%aprox 
+    loss= tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False, reduction=tf.keras.losses.Reduction.AUTO,name='sparse_categorical_crossentropy'),#SUM20%aprox---AUTO80%aprox
     metrics=["accuracy"],
 )
 
@@ -127,7 +128,7 @@ history=model.fit(
     train_ds, epochs=epochs, callbacks=callbacks, validation_data=val_ds,
 )
 #Save model
-model.save('modelScr100.h5')
+model.save('modelTest.h5')
 #print model
 acc = history.history['accuracy']
 val_acc = history.history['val_accuracy']
@@ -147,3 +148,4 @@ plt.plot(epochs_range, val_loss, label='Validacion de la perdida')
 plt.legend(loc='upper right')
 plt.title('Training and Validation Loss')
 plt.show()
+#%%
