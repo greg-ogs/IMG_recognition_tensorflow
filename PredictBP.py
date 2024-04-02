@@ -27,6 +27,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
     batch_size=32)
 
 class_names = train_ds.class_names
+print(class_names)
 
 image = "img.jpg"
 
@@ -36,10 +37,11 @@ print("size done")
 
 model = tf.keras.models.load_model("modelScr-FLOWERS100-softmax.h5")
 
-def inference_mage(data, class_names, model):
+
+def inference_mage(data, class_names, model_to_inference):
     img_array = tf.keras.utils.img_to_array(data)
     img_array = tf.expand_dims(img_array, 0)
-    predictions = model.predict(img_array)
+    predictions = model_to_inference.predict(img_array)
     score = tf.nn.softmax(predictions[0])
     print(
         "This image most likely belongs to {} with a {:.2f} percent confidence."
@@ -47,5 +49,35 @@ def inference_mage(data, class_names, model):
     )
 
 
-for i in range(30):
-    inference_mage(data, class_names, model)
+def convert(model_to_convert):
+    converter = tf.lite.TFLiteConverter.from_keras_model(model_to_convert)  # path to the SavedModel directory
+    tflite_model = converter.convert()
+
+    # Save the model.
+    with open('model.tflite', 'wb') as f:
+        f.write(tflite_model)
+
+def read_tflite(model_tfl):
+    interpreter = tf.lite.Interpreter(model_tfl)
+    interpreter.allocate_tensors()
+
+    # Get input and output tensors.
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+
+    # Test the model on random input data.
+    input_shape = input_details[0]['shape']
+    input_data = np.array(np.random.random_sample(input_shape), dtype=np.float32)
+    interpreter.set_tensor(input_details[0]['index'], input_data)
+
+    interpreter.invoke()
+
+    # The function `get_tensor()` returns a copy of the tensor data.
+    # Use `tensor()` in order to get a pointer to the tensor.
+    output_data = interpreter.get_tensor(output_details[0]['index'])
+    print(output_data)
+
+for i in range(1):
+    # inference_mage(data, class_names, model)
+    # convert(model)
+    read_tflite("model.tflite")
