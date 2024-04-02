@@ -5,59 +5,47 @@ Created on Sun Dec 26 21:06:12 2021
 @author: grego
 Gregorio ALejandro Oropeza Gomez
 """
-import PIL
+from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import tensorflow as tf
-from tensorflow import keras
 
-from tensorflow.keras import layers
-from tensorflow.keras.models import Sequential
-import pathlib
-from keras.models import load_model
-from keras.utils import load_img
-from keras.utils import img_to_array
-from keras.applications.vgg16 import preprocess_input
-from keras.applications.vgg16 import decode_predictions
-from keras.applications.vgg16 import VGG16
-
-
-#image size, target 
 image_size = (180, 180)
 batch_size = 32
 
-print('Introdusca el directorio donde se encuentra el dataset, recuerde usar "/"')
-data_dir = input() #For classes
+data_dir = "E:/IMG_recognition_tensorflow/flower_photos/flower_photos"
 
-#En este caso el unico objetivo del siguiente bloque es leer las clases
 train_ds = tf.keras.utils.image_dataset_from_directory(
-  data_dir,
-  validation_split=0.2,
-  subset="training",
-  seed=123,
-  image_size=(180, 180),
-  batch_size=32)
+    data_dir,
+    validation_split=0.2,
+    subset="training",
+    seed=123,
+    image_size=(180, 180),
+    batch_size=32)
 
-class_names = train_ds.class_names 
-# Aqui termina el bloque anteriormente menvionado
-print('Introdusca la direccion del modelo a usar, recuerde usar "/"')#ssoftmax
-modelToUse = input()
+class_names = train_ds.class_names
 
-model = load_model(modelToUse) #load model
+image = "img.jpg"
 
-print('Introdusca la direccion donde se encuentra la imagen a identificar, recuerde usar "/"')
-image = input()
-img = keras.preprocessing.image.load_img(
-    image, target_size=image_size
-)
-img_array = keras.preprocessing.image.img_to_array(img)
-img_array = tf.expand_dims(img_array, 0)  # Create batch axis
+image = Image.open(image)
+data = image.resize((180, 180))
+print("size done")
 
-predictions = model.predict(img_array)
-score = predictions[0]
-print('--------------------------------------------------------')
-print(
-    "La imagen pertenece a la calse {} con un {:.2f} % de precision"
-    .format(class_names[np.argmax(score)], 100 * np.max(score)))
-print('--------------------------------------------------------')
+model = tf.keras.models.load_model("modelScr-FLOWERS100-softmax.h5")
+
+def inference_mage(data, class_names, model):
+    img_array = tf.keras.utils.img_to_array(data)
+    img_array = tf.expand_dims(img_array, 0)
+    predictions = model.predict(img_array)
+    score = tf.nn.softmax(predictions[0])
+    print(
+        "This image most likely belongs to {} with a {:.2f} percent confidence."
+        .format(class_names[np.argmax(score)], 100 * np.max(score))
+    )
+
+
+for i in range(30):
+    inference_mage(data, class_names, model)
