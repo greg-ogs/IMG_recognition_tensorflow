@@ -32,13 +32,13 @@ print(class_names)
 image = "img.jpg"
 
 image = Image.open(image)
-data = image.resize((180, 180))
-print("size done")
 
 model = tf.keras.models.load_model("modelScr-FLOWERS100-softmax.h5")
 
 
-def inference_mage(data, class_names, model_to_inference):
+def inference_mage(image, class_names, model_to_inference):
+    data = image.resize((180, 180))
+    print("size done")
     img_array = tf.keras.utils.img_to_array(data)
     img_array = tf.expand_dims(img_array, 0)
     predictions = model_to_inference.predict(img_array)
@@ -57,7 +57,7 @@ def convert(model_to_convert):
     with open('model.tflite', 'wb') as f:
         f.write(tflite_model)
 
-def read_tflite(model_tfl):
+def read_tflite(model_tfl, image):
     interpreter = tf.lite.Interpreter(model_tfl)
     interpreter.allocate_tensors()
 
@@ -67,8 +67,13 @@ def read_tflite(model_tfl):
 
     # Test the model on random input data.
     input_shape = input_details[0]['shape']
-    input_data = np.array(np.random.random_sample(input_shape), dtype=np.float32)
-    interpreter.set_tensor(input_details[0]['index'], input_data)
+    print(input_shape)
+    # input_data = np.array(np.random.random_sample(input_shape), dtype=np.float32)
+    input_data = image.resize((input_shape[1], input_shape[2]))
+    print("size done")
+    img_array = tf.keras.utils.img_to_array(input_data)
+    img_array = tf.expand_dims(img_array, 0)
+    interpreter.set_tensor(input_details[0]['index'], img_array)
 
     interpreter.invoke()
 
@@ -76,8 +81,14 @@ def read_tflite(model_tfl):
     # Use `tensor()` in order to get a pointer to the tensor.
     output_data = interpreter.get_tensor(output_details[0]['index'])
     print(output_data)
+    score = tf.nn.softmax(output_data[0])
+    print(score)
+    print(
+        "This image most likely belongs to {} with a {:.2f} percent confidence."
+        .format(class_names[np.argmax(score)], 100 * np.max(score))
+    )
 
 for i in range(1):
-    # inference_mage(data, class_names, model)
+    # inference_mage(image, class_names, model)
     # convert(model)
-    read_tflite("model.tflite")
+    read_tflite("model.tflite", image)
